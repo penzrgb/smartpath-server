@@ -11,7 +11,9 @@ namespace PathFinder
     {
         static void Main(string[] args)
         {
-            using (var conn = new NpgsqlConnection("Host=myserver;Username=mylogin;Password=mypass;Database=mydatabase"))
+            Configuration Config = new Configuration();
+            Config.Initialize();
+            using (var conn = new NpgsqlConnection("Host="+ Configuration.HostIP+ "; Username=" + Configuration.HostUser + ";Password=" + Configuration.HostPass + ";Database=" + Configuration.HostDBName))
             {
                 conn.Open();
                 using (var cmd = new NpgsqlCommand())
@@ -19,11 +21,12 @@ namespace PathFinder
                     cmd.Connection = conn;
 
                     // Insert some data
-                    cmd.CommandText = "INSERT INTO data (some_field) VALUES ('Hello world')";
-                    cmd.ExecuteNonQuery();
+                   //  cmd.CommandText = "INSERT INTO data (some_field) VALUES ('Hello world')";
+                    // cmd.ExecuteNonQuery();
 
                     // Retrieve all rows
-                    cmd.CommandText = "SELECT some_field FROM data";
+                    cmd.CommandText = "select name from australia where place='city'";
+                    Console.WriteLine("Connection Success!");
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
