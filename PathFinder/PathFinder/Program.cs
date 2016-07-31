@@ -48,7 +48,7 @@ namespace PathFinder
             Config.Initialize();
             Console.WriteLine("~Govhack Smartpath Server~\nConnecting to DBhost: " + Configuration.HostIP + "\nDBUsername: " + Configuration.HostUser + "\nDBPassword: " + Configuration.HostPass + "\nDBDatabase: " + Configuration.HostDBName);
             string[] prefixes = new string[1];
-             prefixes[0] = "http://localhost:8083/index/";
+             prefixes[0] = "http://localhost:8082/index/";
              ServerListener.SimpleListenerExample(prefixes);
           
         }
