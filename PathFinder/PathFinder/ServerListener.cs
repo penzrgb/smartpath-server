@@ -99,13 +99,13 @@ namespace PathFinder
         {
             string RequestString = "http://openls.geog.uni-heidelberg.de/route?start=" + mlon2.ToString() + "," + mlat2.ToString() + "&end=" + mlon1.ToString() + "," + mlat1.ToString() +"&via=";
             int i = 0;
-           // foreach (PointF ldat in lightdat)
+            foreach (PointF ldat in lightdat)
             {
                 i++;
-                //RequestString += ldat.Y.ToString() + "," + ldat.X.ToString();
-              //  if(i <= lightdat.Count - 1)
+                RequestString += ldat.Y.ToString() + "," + ldat.X.ToString();
+                if(i <= lightdat.Count - 1)
                 {
-                 //   RequestString += " ";
+                    RequestString += " ";
                 }
             }
             RequestString += "&lang=en&distunit=KM&routepref=Pedestrian&weighting=Shortest&avoidAreas=&useTMC=false&noMotorways=false&noTollways=false&noUnpavedroads=false&noSteps=false&noFerries=false&instructions=false";
@@ -139,8 +139,17 @@ namespace PathFinder
                         LightPos.Y = (float)(double)reader.GetValue(5);
                         //Console.WriteLine(reader.GetString(0) + " | " + reader.GetString(1) + " | " + LightPos.X  + " | " + LightPos.Y);
                         LightPositions.Add(LightPos);
+                       
                     }
-                    RequestPath(mlat1, mlon1, mlat2, mlon2, LightPositions);
+                    List<PointF> ModifiedLightPositions = new List<PointF>();
+                    int interval = (int)Math.Floor(LightPositions.Count() / 20.0);
+                    for (int i = 0; i < LightPositions.Count; i++)
+                    {
+                        if (i % interval == 0) {
+                            ModifiedLightPositions.Add(LightPositions[i]);
+                        }
+                    }
+                    RequestPath(mlat1, mlon1, mlat2, mlon2, ModifiedLightPositions);
                     //ToSend = Newtonsoft.Json.JsonConvert.SerializeObject(LightPositions);
                     //Console.WriteLine(ToSend);
 
