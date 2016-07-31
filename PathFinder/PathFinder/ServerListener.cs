@@ -61,11 +61,11 @@ namespace PathFinder
                Console.WriteLine("Response Header: {0}, Value: {1}", headerKey, String.Join(";", headerValues));
             }
 
-            //using (var conn = new NpgsqlConnection("Host=" + Configuration.HostIP + "; Username=" + Configuration.HostUser + ";Password=" + Configuration.HostPass + ";Database=" + Configuration.HostDBName))
+            using (var conn = new NpgsqlConnection("Host=" + Configuration.HostIP + "; Username=" + Configuration.HostUser + ";Password=" + Configuration.HostPass + ";Database=" + Configuration.HostDBName))
             {
-                //conn.Open();
-               // Console.WriteLine("Connection Success!\n");
-               // SendQuery(conn, "Select * FROM Lights AS light WHERE light.latitude > " + Position.X.ToString() + " AND light.latitude < " + (Position.X + range).ToString() + " AND light.longitude > " + (Position.Y).ToString() + " AND light.longitude < " + (Position.Y + range).ToString());
+                conn.Open();
+                Console.WriteLine("Connection Success!\n");
+                SendQuery(conn, "Select * FROM Lights AS light WHERE light.latitude > " + Position.X.ToString() + " AND light.latitude < " + (Position.X + range).ToString() + " AND light.longitude > " + (Position.Y).ToString() + " AND light.longitude < " + (Position.Y + range).ToString());
             }
             // Obtain a response object.
             HttpListenerResponse response = context.Response;
