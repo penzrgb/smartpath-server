@@ -10,6 +10,8 @@ using System.Drawing;
 using System.IO;
 using System.Diagnostics;
 
+using System.Xml.Linq;
+
 namespace PathFinder
 {
     class ServerListener
@@ -55,23 +57,35 @@ namespace PathFinder
             // Note: The GetContext method blocks while waiting for a request. 
             HttpListenerContext context = listener.GetContext();
             HttpListenerRequest request = context.Request;
-            foreach (var headerKey in request.Headers.Keys)
-            {
-                var headerValues = request.Headers.GetValues(headerKey.ToString());
-               Console.WriteLine("Response Header: {0}, Value: {1}", headerKey, String.Join(";", headerValues));
-            }
+            Uri uri = request.Url;
+           string URL = request.RawUrl.ToString();
+
+            string[] slat = URL.Split('/');
+            int size = slat.Length;
+            double lat1 = 0;
+            double lon1 = 0;
+
+            double lat2 = 0;
+            double lon2 = 0;
+
+            double.TryParse(slat[size - 2], out lat1);
+            double.TryParse(slat[size - 1], out lon1);
+            double.TryParse(slat[size - 4], out lat2);
+            double.TryParse(slat[size - 3], out lon2);
+
+            
 
             using (var conn = new NpgsqlConnection("Host=" + Configuration.HostIP + "; Username=" + Configuration.HostUser + ";Password=" + Configuration.HostPass + ";Database=" + Configuration.HostDBName))
             {
                 conn.Open();
                 Console.WriteLine("Connection Success!\n");
-                SendQuery(conn, "Select * FROM Lights AS light WHERE light.latitude > " + Position.X.ToString() + " AND light.latitude < " + (Position.X + range).ToString() + " AND light.longitude > " + (Position.Y).ToString() + " AND light.longitude < " + (Position.Y + range).ToString());
+                SendQuery(conn, "Select * FROM Lights AS light WHERE light.latitude > " + lat1.ToString() + " AND light.latitude < " + (lat1 + range).ToString() + " AND light.longitude > " + lon1.ToString() + " AND light.longitude < " + (lon1 + range).ToString(),lat1,lon1,lat2,lon2);
             }
             // Obtain a response object.
             HttpListenerResponse response = context.Response;
             // Construct a response.
             string responseString = ToSend;
-            byte[] buffer = System.Text.Encoding.UTF8.GetBytes("<HTML><BODY> Hello world!</BODY></HTML>");
+            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(ToSend);
             ToSend = "";
             // Get a response stream and write the response to it.
             response.ContentLength64 = buffer.Length;
@@ -81,27 +95,28 @@ namespace PathFinder
             output.Close();
         }
         
-        static public void RequestPath(PointF start, PointF end, List<PointF> lightdat)
+        static public void RequestPath(double mlat1, double mlon1, double mlat2, double mlon2, List<PointF> lightdat)
         {
-            string RequestString = "http://openls.geog.uni-heidelberg.de/route?start=" + start.X.ToString() + "," + start.Y.ToString() + "&end=" + end.X.ToString() + "," + end.Y.ToString();
-            foreach (PointF ldat in lightdat)
+            string RequestString = "http://openls.geog.uni-heidelberg.de/route?start=" + mlon2.ToString() + "," + mlat2.ToString() + "&end=" + mlon1.ToString() + "," + mlat1.ToString() +"&via=";
+            int i = 0;
+           // foreach (PointF ldat in lightdat)
             {
-                RequestString += ldat.X.ToString() + "," + ldat.Y.ToString() + " ";
+                i++;
+                //RequestString += ldat.Y.ToString() + "," + ldat.X.ToString();
+              //  if(i <= lightdat.Count - 1)
+                {
+                 //   RequestString += " ";
+                }
             }
             RequestString += "&lang=en&distunit=KM&routepref=Pedestrian&weighting=Shortest&avoidAreas=&useTMC=false&noMotorways=false&noTollways=false&noUnpavedroads=false&noSteps=false&noFerries=false&instructions=false";
 
             //string RequestString = "http://openls.geog.uni-heidelberg.de/route?start=9.256506,49.240011&end=9.156506,49.230011&via=&lang=de&distunit=KM&routepref=Pedestrian&weighting=Shortest&avoidAreas=&useTMC=false&noMotorways=false&noTollways=false&noUnpavedroads=false&noSteps=false&noFerries=false&instructions=false";
             Console.WriteLine(RequestString+"\n");
-            HttpWebRequest HttpWR = (HttpWebRequest)WebRequest.Create(RequestString);
-            WebResponse Wresp = HttpWR.GetResponse();
-            using (var reader = new StreamReader(Wresp.GetResponseStream()))
-            {
-                string result = reader.ReadToEnd();
-                Console.WriteLine(result);
-            }
+            XDocument doc = XDocument.Load(RequestString);
+            ToSend = doc.ToString();
        
         }
-        static void SendQuery(NpgsqlConnection con, string query)
+        static void SendQuery(NpgsqlConnection con, string query, double mlat1, double mlon1, double mlat2, double mlon2)
         {
             using (var cmd = new NpgsqlCommand())
             {
@@ -125,7 +140,7 @@ namespace PathFinder
                         //Console.WriteLine(reader.GetString(0) + " | " + reader.GetString(1) + " | " + LightPos.X  + " | " + LightPos.Y);
                         LightPositions.Add(LightPos);
                     }
-                    RequestPath(Position, Destination, LightPositions);
+                    RequestPath(mlat1, mlon1, mlat2, mlon2, LightPositions);
                     //ToSend = Newtonsoft.Json.JsonConvert.SerializeObject(LightPositions);
                     //Console.WriteLine(ToSend);
 
